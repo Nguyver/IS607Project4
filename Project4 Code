@@ -1,0 +1,66 @@
+
+
+#  on the first page, you should pull out the title, date, and author, and store
+# these in an R data frame. 
+
+library(rvest)
+library(XML)
+library(plyr)
+library(dplyr)
+
+web_scraping <- function(url)
+{
+  rblog.title<-url %>% 
+    html_nodes(" #leftcontent h2") %>%
+    html_text()
+  rblog.titledf <- as.data.frame(rblog.title)
+  
+  rblog.DateAuthor<-url %>% 
+    html_nodes(".meta") %>%
+    html_text()
+  
+  
+  rblog.DateAuthordf <- as.data.frame(rblog.DateAuthor)
+  library(plyr)
+  library(dplyr)
+  
+  rblog.DateAuthordf<-within(rblog.DateAuthordf , rblog.DateAuthor<-data.frame(do.call('rbind', strsplit(as.character(rblog.DateAuthor), 'By', fixed=TRUE))))
+  #rblog.DateAuth0rdf<- data.frame(do.call('rbind', strsplit(as.character(rblog.DateAuthor),'By',fixed=TRUE)))
+  #Merge Title with date and author
+  
+  rblog.titleDateAuthordf <- data.frame(Title=rblog.titledf,rblog.DateAuthordf)
+  #colnames(rblog.titleDateAuthordf)
+  #print(rblog.titleDateAuthordf)
+  return(rblog.titleDateAuthordf) 
+}
+
+
+#Read Main Page
+rblogUrlMain <- html("http://www.r-bloggers.com/search/web%20scraping")
+web_scraping(rblogUrlMain)
+
+
+
+#base information for blog entries on all of the tagged pages
+
+urlMain <-"http://www.r-bloggers.com/search/web%20scraping"
+urlstr <-"/page/"
+
+getPage <- function(page){
+  
+  url = paste(urlMain, urlstr,page, "/", sep = "")
+  print(url)
+  url.html <-html(url)
+  #Call web_scraping function
+ rblogdf<- web_scraping(url.html)
+ print(rblogdf)
+  #putting a pause in between  page reads
+  Sys.sleep(1)
+ return(as.list(rblogdf))
+}
+
+llply(2:5, getPage)
+
+#pages<-llply(2:5, getPage)
+#pagesdf<-ldply (pages, data.frame)
+#pagesdf$rblog.DateAuthor.X3
