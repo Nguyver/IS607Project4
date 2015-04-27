@@ -1,68 +1,15 @@
-#Note:
-#Try to create function that can take a list of selectors
-#Enforce each selector in the list returns the same number of results
-#For each selector, eventually create a DF with each selector resulting
-#in a column in the resulting datafame
-
-
-
 library(rvest)
 library(dplyr)
 
 url <- "http://www.r-bloggers.com/search/web%20scraping/"
-urls <- "http://www.r-bloggers.com/search/web%20scraping/page/2"
+urls <- "http://www.r-bloggers.com/search/web%20scraping/page/"
+page = 17
 
-#Function to pull data from a selector
-fromSelector <-  function(url, selector) {
-  extract <- url %>%
-    html() %>%
-    html_nodes(selector) %>%
-    html_text()
-  
-  return (extract)
-}
+selector1 <- "#leftcontent h2"
+selector2 <- ".date"
+selector3 <- ".meta a"
 
-
-titles <- urls %>%
-  html() %>%
-  html_nodes("#leftcontent h2") %>%
-  html_text()
-
-date <- url %>%
-  html() %>%
-  html_nodes(".date") %>%
-  html_text()
-
-author <- url %>%
-  html() %>%
-  html_nodes(".meta") %>%
-  html_text()
-
-str(titles)
-str(author)
-View(titles)
-View(author)
-
-titles.df <- as.data.frame(titles)
-date.df <- as.data.frame(date)
-
-data <- bind_cols(titles.df, date.df)
-
-View(data)
-
-
-
-
-
-
-
-
-
-titles <- fromSelector(url, "#leftcontent h2")
-str(titles)
-
-
-extract <- function(url, selector1, selector2{
+extract <- function(url, selector1, selector2, selector3){
 
   data1 <- url %>%
     html() %>%
@@ -74,12 +21,27 @@ extract <- function(url, selector1, selector2{
     html_nodes(selector2) %>%
     html_text()
   
-  data1.df <- as.data.frame(data1)
-  data2.df <- as.data.frame(data2)
+  data3 <- url %>%
+    html() %>%
+    html_nodes(selector3) %>%
+    html_text()
   
-  df <- bind_cols(data1.df, data2.df)
+  data1.df <- as.data.frame(data1, stringsAsFactors=FALSE)
+  data2.df <- as.data.frame(data2, stringsAsFactors=FALSE)
+  data3.df <- as.data.frame(data3, stringsAsFactors=FALSE)
   
+  df <- bind_cols(data1.df, data2.df, data3.df)
   return(df)
 }
 
-test <- updateURL(urls, 3)
+df_all <- extract(url, selector1, selector2, selector3)
+
+for(i in 2:page) {
+  urlreq <- paste0(urls,i)
+  df <- extract(urlreq, selector1, selector2, selector3)
+  Sys.sleep(1)
+  print(urlreq)
+  df_all <- rbind(df_all, df)
+}
+
+View(df_all)
